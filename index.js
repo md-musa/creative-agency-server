@@ -8,8 +8,9 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cors());
 // ---START------MongoDB connection---------
 const MongoClient = require("mongodb").MongoClient;
-const uri =
-  "mongodb+srv://organicUser:quvqc8ro@cluster0.iiaf1.mongodb.net/volunteer-network?retryWrites=true&w=majority";
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.iiaf1.mongodb.net/volunteer-network?retryWrites=true&w=majority`;
+
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -89,4 +90,7 @@ client.connect((err) => {
   });
 });
 
-app.listen(5000);
+app.get("/", (req, res) => {
+  res.send({isWorking: true});
+});
+app.listen(process.env.PORT || 5000);
