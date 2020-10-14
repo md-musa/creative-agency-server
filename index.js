@@ -42,35 +42,43 @@ client.connect((err) => {
 
   // --------[START]-----Place new order---------------
   app.post("/subscribeToService", (req, res) => {
-    const file = req.files.file;
-    const {name, email, service, description, price} = req.body;
-    console.log(file, service, description, name, email, price);
-
-    const filePath = `${__dirname}/images/${file.name}`;
-    file.mv(filePath, (err) => {
-      if (err) {
-        res.send({massege: "failed to upload"});
-      }
-      const newImage = fs.readFileSync(filePath);
-      const encImage = newImage.toString("base64");
-      const image = {
-        contentType: file.mimetype,
-        size: file.size,
-        img: Buffer(encImage, "base64"),
-      };
-
-      ordersCollection
-        .insertOne({name, email, service, description, price, image})
+    // const file = req.files.file;
+    const {name, email, service, description, price, status} = req.body;
+    // console.log(file, service, description, name, email, price);
+    ordersCollection
+        .insertOne({name, email, service, description, price, status})
         .then((result) => {
-          fs.remove(filePath, (err) => {
-            if (err) {
-              return res.send({massege: "failed to uploade"});
-            }
-          });
-          console.log(result);
           res.send(result.insertedCount > 0);
+         
+          console.log(result);
+          });
         });
-    });
+
+    // const filePath = `${__dirname}/images/${file.name}`;
+    // file.mv(filePath, (err) => {
+    //   if (err) {
+    //     res.send({massege: "failed to upload"});
+    //   }
+    //   const newImage = fs.readFileSync(filePath);
+    //   const encImage = newImage.toString("base64");
+    //   const image = {
+    //     contentType: file.mimetype,
+    //     size: file.size,
+    //     img: Buffer(encImage, "base64"),
+    //   };
+
+    //   ordersCollection
+    //     .insertOne({name, email, service, description, price, image})
+    //     .then((result) => {
+    //       fs.remove(filePath, (err) => {
+    //         if (err) {
+    //           return res.send({massege: "failed to uploade"});
+    //         }
+    //       });
+    //       console.log(result);
+    //       res.send(result.insertedCount > 0);
+    //     });
+    // });
   });
   // --------[END]-----Place new order---------------
 
