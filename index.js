@@ -4,6 +4,7 @@ const cors = require("cors");
 const {ObjectId} = require("mongodb");
 const fileUpload = require("express-fileupload");
 const fs = require("fs-extra");
+require("dotenv").config();
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
@@ -12,10 +13,10 @@ app.use(fileUpload());
 
 // ---START------MongoDB connection---------
 const MongoClient = require("mongodb").MongoClient;
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.iiaf1.mongodb.net/creative-agency?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.iiaf1.mongodb.net/creative-agency?retryWrites=true&w=majority`;
 
-const uri =
-  "mongodb+srv://organicUser:quvqc8ro@cluster0.iiaf1.mongodb.net/creative-agency?retryWrites=true&w=majority";
+// const uri =
+//   "mongodb+srv://organicUser:quvqc8ro@cluster0.iiaf1.mongodb.net/creative-agency?retryWrites=true&w=majority";
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -183,5 +184,8 @@ client.connect((err) => {
       });
   });
 });
+app.get("/", (req, res) => {
+  res.send("workig fine ");
+});
 
-app.listen(5000);
+app.listen(process.env.PORT || 5000);
