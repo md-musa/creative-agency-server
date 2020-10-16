@@ -14,82 +14,39 @@ app.use(fileUpload());
 // ---START------MongoDB connection---------
 const MongoClient = require("mongodb").MongoClient;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.iiaf1.mongodb.net/creative-agency?retryWrites=true&w=majority`;
-
-// const uri =
-//   "mongodb+srv://organicUser:quvqc8ro@cluster0.iiaf1.mongodb.net/creative-agency?retryWrites=true&w=majority";
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
 // ---END------MongoDB connection---------
 
 client.connect((err) => {
-  console.log("error", err);
-  const ordersCollection = client
-    .db("creative-agency")
-    .collection("all-orders");
-  const reviewsCollection = client
-    .db("creative-agency")
-    .collection("all-reviews");
-  const servicesCollection = client
-    .db("creative-agency")
-    .collection("all-services");
+  const ordersCollection = client.db("creative-agency").collection("all-orders");
+  const reviewsCollection = client.db("creative-agency").collection("all-reviews");
+  const servicesCollection = client.db("creative-agency").collection("all-services");
   const adminCollection = client.db("creative-agency").collection("all-admin");
 
-  console.log("----MongoDB connected");
-  // ----------start from here-----------------
 
   // --------[START]-----Place new order---------------
   app.post("/subscribeToService", (req, res) => {
-    // const file = req.files.file;
-    const {name, email, service, description, price, status} = req.body;
-    // console.log(file, service, description, name, email, price);
+    const {name, email, service, description, price, status, image} = req.body;
     ordersCollection
-        .insertOne({name, email, service, description, price, status})
-        .then((result) => {
-          res.send(result.insertedCount > 0);
-         
-          console.log(result);
-          });
-        });
-
-    // const filePath = `${__dirname}/images/${file.name}`;
-    // file.mv(filePath, (err) => {
-    //   if (err) {
-    //     res.send({massege: "failed to upload"});
-    //   }
-    //   const newImage = fs.readFileSync(filePath);
-    //   const encImage = newImage.toString("base64");
-    //   const image = {
-    //     contentType: file.mimetype,
-    //     size: file.size,
-    //     img: Buffer(encImage, "base64"),
-    //   };
-
-    //   ordersCollection
-    //     .insertOne({name, email, service, description, price, image})
-    //     .then((result) => {
-    //       fs.remove(filePath, (err) => {
-    //         if (err) {
-    //           return res.send({massege: "failed to uploade"});
-    //         }
-    //       });
-    //       console.log(result);
-    //       res.send(result.insertedCount > 0);
-    //     });
-    // });
+      .insertOne({name, email, service, description, price, status, image})
+      .then((result) => {
+        res.send(result.insertedCount > 0);
+      });
   });
   // --------[END]-----Place new order---------------
+
 
   //---------[START]-----Add review from client----------
   app.post("/addReview", (req, res) => {
     reviewsCollection.insertOne(req.body).then((result) => {
-      console.log(result);
       res.send(result.insertedCount > 0);
     });
   });
   //---------[END]-----Add review from client----------
+
 
   //-------[START]--------ADD new service ------------
   app.post("/addNewService", (req, res) => {
@@ -118,80 +75,97 @@ client.connect((err) => {
               return res.send({massege: "failed to uploaded"});
             }
           });
-          console.log(result);
           res.send(result.insertedCount > 0);
         });
     });
   });
-  //-------[END]--------ADD new service ------------
+  //-------[END]--------ADD new service ----------------------
 
-  // -------[START]------Add new admin----------
+
+  // -------[START]------Add new admin---------------------------
   app.post("/addNewAdmin", (req, res) => {
-    console.log(req.body.email);
     adminCollection.insertOne(req.body).then((result) => {
-      console.log(result);
       res.send(result.insertedCount > 0);
     });
   });
-  // -------[END]------Add new admin----------
+  // -------[END]------Add new admin----------------------------
 
-  //--------[START]-----All clilent registered services list-------
+
+  //--------[START]-----Send all clilent registered services list-------
   app.get("/allRegisteredServices", (req, res) => {
     ordersCollection.find({}).toArray((err, documents) => {
-      console.log(documents);
       res.send(documents);
     });
   });
-  //--------[END]-----All clilent registered services list-------
+  //--------[END]-----Send All clilent registered services list-------
 
+
+  // -------[START]----send all service from service's collection---------------
   app.get("/services", (req, res) => {
     servicesCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
   });
+  // -------[END]----send all service from service's collection---------------
 
-  // get all reviews
+
+  // ------[START]--------send all review from review's collection------------
   app.get("/reviews", (req, res) => {
     reviewsCollection.find({}).toArray((err, documents) => {
-      console.log(documents, err);
       res.send(documents);
     });
   });
+  // ------[END]--------send all review from review's collection----------------
 
-  //----[START]--Single client registered services
+  
+  //----[START]--Send Single client registered services--------------
   app.get("/Single-client-registered-services/:email", (req, res) => {
-    console.log(req.params.email);
     ordersCollection
       .find({email: req.params.email})
       .toArray((err, documents) => {
-        console.log(documents, err);
         res.send(documents);
       });
   });
-  //----[END]--Single client registered services
+  //----[END]-- Send Single client registered services------------
 
-  //all orders
+
+  //------[START]----send all orders from order's collection------
   app.get("/orders", (req, res) => {
     ordersCollection.find({}).toArray((err, documents) => {
-      console.log(documents, err);
       res.send(documents);
     });
   });
+  //------[END]----send all orders from order's collection------
 
-  //Upgrade order status like pending, on going , done
-  app.patch("/updateOrderStatus/:id", (req, res) => {
+
+  //----[START] ----------Update order status-------------
+  app.patch("/updateStatus", (req, res) => {
     ordersCollection
       .updateOne(
-        {_id: ObjectId(req.params.id)},
+        {_id: ObjectId(req.body.id)},
         {
-          $set: {status: req.body.status},
+          $set: {status: req.body.changedStatus},
         }
       )
       .then((result) => {
-        console.log(result);
+        res.send(result);
       });
   });
+  //----[END] ----------Update order status-------------
+
+
+  // -----[START]-----Admin email matching-----------
+  app.get("/isAdminExist/:email", (req, res) => {
+    adminCollection
+      .find({email: req.params.email})
+      .toArray((err, documents) => {
+        res.send(documents);
+      });
+  });
+  // -----[END]-----Admin email matching-----------
 });
+
+
 app.get("/", (req, res) => {
   res.send("workig fine ");
 });
