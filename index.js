@@ -25,7 +25,7 @@ client.connect((err) => {
   const reviewsCollection = client.db("creative-agency").collection("all-reviews");
   const servicesCollection = client.db("creative-agency").collection("all-services");
   const adminCollection = client.db("creative-agency").collection("all-admin");
-
+  console.log("-----MongoDB Connected")
 
   // --------[START]-----Place new order---------------
   app.post("/subscribeToService", (req, res) => {
@@ -51,32 +51,19 @@ client.connect((err) => {
   //-------[START]--------ADD new service ------------
   app.post("/addNewService", (req, res) => {
     const file = req.files.file;
-    const service = req.body.service;
+    const title = req.body.service;
     const description = req.body.description;
+    const readImg = file.data;
+    const base64 = readImg.toString("base64");
 
-    const filePath = `${__dirname}/images/${file.name}`;
-    file.mv(filePath, (err) => {
-      if (err) {
-        res.send({massege: "failed to upload"});
-      }
-      const newImage = fs.readFileSync(filePath);
-      const encImage = newImage.toString("base64");
-      const image = {
-        contentType: file.mimetype,
-        size: file.size,
-        img: Buffer(encImage, "base64"),
-      };
+    const image = {
+      contentType: req.files.file.mimetype,
+      size: req.files.file.size,
+      img: Buffer.from(base64, "base64"),
+    };
 
-      servicesCollection
-        .insertOne({service, description, image})
-        .then((result) => {
-          fs.remove(filePath, (err) => {
-            if (err) {
-              return res.send({massege: "failed to uploaded"});
-            }
-          });
-          res.send(result.insertedCount > 0);
-        });
+    servicesCollection.insertOne({ title: title, description: description, image: image }).then(() => {
+      res.end();
     });
   });
   //-------[END]--------ADD new service ----------------------
@@ -167,7 +154,7 @@ client.connect((err) => {
 
 
 app.get("/", (req, res) => {
-  res.send("workig fine ");
+  res.send("working fine ");
 });
 
 app.listen(process.env.PORT || 5000);
